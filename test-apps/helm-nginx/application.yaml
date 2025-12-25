@@ -1,0 +1,96 @@
+# Helm NGINX Application - Helm Chart Example
+#
+# This application deploys NGINX using a Helm chart from Bitnami.
+# Perfect for testing Helm integration after upgrades.
+#
+# WHAT IT TESTS:
+# - Helm chart rendering
+# - Values file overrides
+# - Helm-specific health checks
+# - Chart upgrades
+#
+# SOURCE: Bitnami NGINX Helm chart
+#
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: helm-nginx
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: helm-nginx
+    demo.test-app: "true"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: test-apps
+
+  # Source - Bitnami Helm chart
+  source:
+    # Bitnami Helm repository
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: nginx
+    targetRevision: 15.14.0  # Pinned version for reproducibility
+
+    # Helm-specific configuration
+    helm:
+      # Release name
+      releaseName: nginx-demo
+
+      # Values overrides
+      values: |
+        # Minimal deployment for demo
+        replicaCount: 1
+
+        # Resource limits (suitable for minikube)
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+
+        # Service configuration
+        service:
+          type: ClusterIP
+          port: 80
+
+        # Disable features we don't need
+        metrics:
+          enabled: false
+
+        # Simple healthcheck page
+        serverBlock: |-
+          server {
+            listen 8080;
+            location /health {
+              return 200 'OK';
+              add_header Content-Type text/plain;
+            }
+          }
+
+  # Destination
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: helm-nginx
+
+  # Sync policy
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+
+  # Ignore differences for Helm-managed fields
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas  # May be modified by HPA

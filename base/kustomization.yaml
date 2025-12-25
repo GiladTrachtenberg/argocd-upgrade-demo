@@ -1,0 +1,34 @@
+# Base Kustomize configuration for Argo CD upgrade demo
+#
+# This base is VERSION-AGNOSTIC. The version-specific overlays (overlays/v2.10, etc.)
+# will reference the appropriate HA manifest version and import this base.
+#
+# Adapted from production setup at:
+# /Users/giladtrachtenberg/work/git/platform-infra/k8s/argocd/setup/manifests/kustomization.yaml
+#
+# Changes from production:
+# - Uses nginx-ingress (minikube addon) instead of AWS ALB
+# - No External Secrets (use local K8s secrets)
+# - No SSO/Dex config (use local admin account)
+# - No webhook ingress
+# - No gRPC service (needed for ALB HTTP2)
+#
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: argocd
+
+resources:
+  - namespace.yaml
+  - ingress.yaml
+  # NOTE: argocd-secret.yaml is applied as a patch in overlays to merge
+  # with the secret from upstream HA manifests (avoids ID conflict)
+
+# These ConfigMaps are applied as patches to the base HA manifests
+# The overlays will merge these into the Argo CD installation
+configMapGenerator: []
+
+# Labels applied to all resources
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  demo.argocd.upgrade: "true"

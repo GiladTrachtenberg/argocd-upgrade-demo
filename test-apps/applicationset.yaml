@@ -1,0 +1,82 @@
+# ApplicationSet for Test Applications
+#
+# This ApplicationSet replaces the "App of Apps" pattern with a more modern
+# and automated approach using the Git directory generator.
+#
+# BENEFITS OVER APP-OF-APPS:
+# - Automatic discovery of new applications (just add a directory)
+# - Less boilerplate (one resource instead of N+1)
+# - Native ApplicationSet features (progressive rollouts, etc.)
+# - Better scalability for managing many applications
+# - Declarative application management
+#
+# WHAT IT DOES:
+# - Scans the test-apps/ directory for subdirectories
+# - Creates an Application for each subdirectory found
+# - Excludes the app-of-apps directory (legacy pattern)
+# - Automatically syncs all discovered applications
+#
+# HOW IT WORKS:
+# 1. Git directory generator scans test-apps/ subdirectories
+# 2. For each directory, it creates an Application CR
+# 3. Each Application uses the directory name for naming
+# 4. Applications inherit common policies and settings
+#
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: test-apps
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: test-apps-applicationset
+    demo.test-app: "true"
+    demo.pattern: "applicationset"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  syncPolicy:
+    preserveResourcesOnDeletion: false
+  generators:
+    - git:
+        repoURL: https://github.com/argoproj/argocd-example-apps.git
+        revision: HEAD
+        directories:
+          # Only deploy lightweight apps for the upgrade demo
+          - path: "guestbook"
+          - path: "helm-guestbook"
+          - path: "kustomize-guestbook"
+  template:
+    metadata:
+      name: "test-{{path.basename}}"
+      namespace: argocd
+      labels:
+        app.kubernetes.io/name: "{{path.basename}}"
+        demo.test-app: "true"
+        demo.managed-by: "applicationset"
+        demo.source-path: "{{path}}"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: test-apps
+      source:
+        repoURL: https://github.com/argoproj/argocd-example-apps.git
+        targetRevision: HEAD
+        path: "{{path}}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "test-{{path.basename}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+          allowEmpty: false
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+      revisionHistoryLimit: 3

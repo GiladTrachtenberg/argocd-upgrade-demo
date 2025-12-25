@@ -1,0 +1,48 @@
+# Argo CD Ingress - For local minikube testing
+#
+# This Ingress provides HTTPS access to Argo CD via a hostname,
+# simulating the production hub environment setup.
+#
+# REQUIREMENTS:
+# - minikube with Docker driver (ports mapped: 9080:80, 9443:443)
+# - minikube ingress addon enabled: minikube addons enable ingress
+# - /etc/hosts entry: 127.0.0.1 argocd.local
+#   (Added automatically by the install script, or add manually)
+#
+# NOTE: ingress-dns addon does NOT work with Docker driver on macOS
+# because the minikube IP is not routable from the host.
+#
+# ACCESS:
+# - URL: https://argocd.local:9443
+# - Username: admin
+# - Password: admin123
+#
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-server-ingress
+  namespace: argocd
+  annotations:
+    # ArgoCD server port 8080 serves HTTP (port 8083 would be HTTPS)
+    # The service routes 443 -> 8080 (HTTP), so we use HTTP backend
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    # Increase timeouts for API calls
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: argocd.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 443
+  tls:
+    - hosts:
+        - argocd.local

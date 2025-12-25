@@ -1,0 +1,158 @@
+# Argo CD v3.2.x Overlay
+#
+# UPGRADE STEP: v3.1.x → v3.2.1 (FINAL TARGET VERSION)
+#
+# This is the TARGET VERSION for our production upgrade.
+# After validating this works in minikube, we can proceed with production.
+#
+# ===========================================================================
+# BREAKING CHANGES IN v3.2
+# ===========================================================================
+#
+# 1. HYDRATION PATHS MUST BE NON-ROOT
+#    - Hydration path cannot be "" (empty string) or "."
+#    - Must use a subdirectory (e.g., "manifests/", "kustomize/")
+#    - Impact: ApplicationSets using hydration with root paths will fail
+#    - ACTION: Check ApplicationSet configs for hydration paths
+#
+# 2. PROGRESSIVE SYNC DELETION
+#    - If using progressive sync, deletion behavior has changed
+#    - Resources are now deleted in waves (respecting sync waves)
+#    - Impact: Deletion order may differ from previous versions
+#    - ACTION: Review if you have sync wave dependencies during deletion
+#
+# 3. SERVER-SIDE DIFF (NEW FEATURE)
+#    - New --server-side flag for diff operations
+#    - Uses Kubernetes dry-run apply for more accurate diffs
+#    - Especially useful for CRDs with defaulting/validation
+#    - ACTION: Test with server-side diff, consider enabling if helpful
+#
+# OFFICIAL DOCS:
+# https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.1-3.2/
+#
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: argocd
+resources:
+  # Using non-HA manifests for minikube (single node - HA anti-affinity rules won't work)
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.2.1/manifests/install.yaml
+  - ../../base
+patches:
+  # RBAC migration for v3.0+ fine-grained permissions
+  - path: ../v3.0/migrations/argocd-rbac-v3-migration.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-rbac-cm
+  # Disable automatic deletion of argocd-initial-admin-secret (for demo/testing)
+  - path: disable-secret-deletion.yaml
+    target:
+      kind: Job
+      name: argocd-initial-admin-secret-cleanup
+  - path: ../../base/argocd-cm.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-cm
+  - path: ../../base/argocd-secret.yaml
+    target:
+      kind: Secret
+      name: argocd-secret
+  - path: ../../base/argocd-cmd-params-cm.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-cmd-params-cm
+  - target:
+      kind: Service
+      name: argocd-server
+    patch: |-
+      - op: replace
+        path: /spec/type
+        value: NodePort
+      - op: add
+        path: /spec/ports/0/nodePort
+        value: 30080
+      - op: add
+        path: /spec/ports/1/nodePort
+        value: 30443
+  # Optional: Enable server-side diff by default
+  # Uncomment to test server-side diff behavior
+  # - target:
+  #     kind: ConfigMap
+  #     name: argocd-cmd-params-cm
+  #   patch: |-
+  #     - op: add
+  #       path: /data/server.diff.server-side
+  #       value: "true"
+# Use commonAnnotations instead of commonLabels to avoid modifying immutable
+# StatefulSet selector fields during upgrades
+commonAnnotations:
+  argocd.version: "v3.2.1"
+  demo.upgrade.step: "v3.1-to-v3.2"
+  demo.upgrade.target: "true"
+# ===========================================================================
+# POST-UPGRADE VALIDATION CHECKLIST (FINAL)
+# ===========================================================================
+#
+# After upgrading to v3.2.1 (final target), verify:
+#
+# 1. VERSION CHECK
+#    kubectl get deploy argocd-server -o jsonpath='{.spec.template.spec.containers[0].image}'
+#    Expected: quay.io/argoproj/argocd:v3.2.1
+#
+# 2. APPLICATIONS HEALTHY
+#    argocd app list
+#    Expected: All apps Healthy/Synced
+#
+# 3. TEST SERVER-SIDE DIFF (new feature)
+#    argocd app diff guestbook --server-side
+#    Expected: Diff output (may differ from client-side diff)
+#
+# 4. RBAC TEST - All roles still work
+#    argocd account can-i sync applications '*/*' --as admin        # owner
+#    argocd account can-i sync applications 'test-apps/*' --as operator
+#    argocd account can-i update/deployment applications 'test-apps/*' --as operator
+#    Expected: All return "yes"
+#
+# 5. SYNC TEST
+#    argocd app sync guestbook
+#    Expected: Sync successful
+#
+# 6. UI TEST
+#    Open https://localhost:8080 (via port-forward)
+#    - Login with admin/admin123
+#    - View applications
+#    - Trigger a sync
+#    - View diff
+#    Expected: All work correctly
+#
+# 7. NO ERRORS IN LOGS
+#    kubectl logs -l app.kubernetes.io/name=argocd-server -n argocd | grep -i error
+#    kubectl logs -l app.kubernetes.io/name=argocd-application-controller -n argocd | grep -i error
+#    Expected: No critical errors
+#
+# ===========================================================================
+# PRODUCTION READINESS CHECKLIST
+# ===========================================================================
+#
+# Before proceeding to production upgrade, confirm:
+#
+# [ ] All test applications Healthy/Synced after upgrade
+# [ ] RBAC working for owner/operator/viewer roles
+# [ ] No errors in Argo CD logs
+# [ ] UI accessible and functional
+# [ ] Sync operations work correctly
+# [ ] Diff operations work (both client-side and server-side)
+# [ ] Rollback procedure tested
+# [ ] Backup of production state created
+# [ ] Maintenance window scheduled
+# [ ] Teams notified
+#
+# ===========================================================================
+# UPGRADE COMPLETE
+# ===========================================================================
+#
+# If all checks pass, you have successfully validated the upgrade path:
+#
+#   v2.10.x → v2.14.x → v3.0.x → v3.1.x → v3.2.1 ✓
+#
+# The production upgrade can now proceed with confidence.
+# Refer to TICKET.md for the production rollout plan.

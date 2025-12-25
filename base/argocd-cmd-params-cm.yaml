@@ -1,0 +1,13 @@
+# ArgoCD Server Command Parameters
+#
+# This ConfigMap configures argocd-server behavior.
+# server.insecure: "true" disables internal HTTPS redirect,
+# required when using an ingress that terminates TLS.
+#
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cmd-params-cm
+  namespace: argocd
+data:
+  server.insecure: "true"

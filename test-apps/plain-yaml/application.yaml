@@ -1,0 +1,49 @@
+# Plain YAML Application - Simple Manifest Example
+#
+# This application deploys a simple nginx using plain YAML manifests.
+# No Kustomize, no Helm - just raw Kubernetes YAML.
+#
+# WHAT IT TESTS:
+# - Basic manifest application
+# - Directory-based deployment
+# - Simple sync behavior
+#
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: plain-yaml
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: plain-yaml
+    demo.test-app: "true"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: test-apps
+
+  # Source - simple YAML manifests
+  source:
+    repoURL: https://github.com/argoproj/argocd-example-apps.git
+    targetRevision: HEAD
+    path: guestbook  # Reuse guestbook manifests as plain YAML
+
+    # No special processing - treat as plain YAML
+    directory:
+      recurse: false
+
+  # Destination
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plain-yaml
+
+  # Sync policy - manual for this one to test manual sync
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    # NOTE: No automated sync - tests manual sync functionality
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m

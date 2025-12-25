@@ -1,0 +1,68 @@
+# Guestbook Application - Kustomize Example
+#
+# This is the official Argo CD guestbook example, perfect for testing
+# basic GitOps functionality after upgrades.
+#
+# WHAT IT TESTS:
+# - Basic application sync
+# - Health assessment
+# - Auto-sync with self-heal
+# - Kustomize rendering
+#
+# SOURCE: https://github.com/argoproj/argocd-example-apps/tree/master/guestbook
+#
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: guestbook
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: guestbook
+    demo.test-app: "true"
+  # Finalizer for cascade deletion
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # Project this app belongs to
+  project: test-apps
+
+  # Source repository
+  source:
+    # Official Argo CD example apps repository
+    repoURL: https://github.com/argoproj/argocd-example-apps.git
+    targetRevision: HEAD
+    path: guestbook
+
+  # Destination cluster and namespace
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: guestbook
+
+  # Sync policy
+  syncPolicy:
+    # Automated sync with self-heal and prune
+    automated:
+      # Automatically sync when changes detected
+      prune: true
+      # Fix drift from desired state
+      selfHeal: true
+      # Allow empty (no resources to deploy)
+      allowEmpty: false
+
+    # Sync options
+    syncOptions:
+      # Create namespace if it doesn't exist
+      - CreateNamespace=true
+      # Apply out of sync only
+      - ApplyOutOfSyncOnly=true
+
+    # Retry on failure
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  # Health checks and status
+  revisionHistoryLimit: 3

@@ -1,0 +1,160 @@
+# Argo CD v3.0.x Overlay
+#
+# ⚠️  MAJOR VERSION UPGRADE: v2.14.x → v3.0.x ⚠️
+#
+# This is the CRITICAL upgrade step with significant breaking changes.
+# Review all breaking changes below before applying this overlay.
+#
+# ===========================================================================
+# BREAKING CHANGES IN v3.0
+# ===========================================================================
+#
+# 1. FINE-GRAINED RBAC (CRITICAL!)
+#    - 'update' on Application NO LONGER implies update on managed resources
+#    - 'delete' on Application NO LONGER implies delete on managed resources
+#    - ACTION: Must add explicit 'update/*' and 'delete/*' permissions
+#    - See: migrations/argocd-rbac-v3-migration.yaml
+#
+# 2. RESOURCE HEALTH IN REDIS
+#    - Resource health statuses now stored in Redis (not in Application CR)
+#    - Improves performance by reducing Application CR updates
+#    - Redis remains a core component
+#
+# 3. DEFAULT RESOURCE EXCLUSIONS
+#    - New default resource.exclusions in argocd-cm
+#    - Excludes high-churn controller-managed resources (Endpoints, Leases, etc.)
+#    - Override in argocd-cm if you need to track these resources
+#
+# 4. MINIMUM KUBERNETES VERSION
+#    - Requires Kubernetes 1.21+
+#    - ACTION: Verify cluster version before upgrading
+#
+# 5. API CHANGES
+#    - Some internal APIs have changed
+#    - Most user-facing APIs remain compatible
+#    - ACTION: Check any custom integrations
+#
+# OFFICIAL DOCS:
+# https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/2.14-3.0/
+#
+# ===========================================================================
+# UPGRADE PROCEDURE
+# ===========================================================================
+#
+# 1. BEFORE UPGRADE: Apply RBAC migration first!
+#    kubectl apply -f overlays/v3.0/migrations/argocd-rbac-v3-migration.yaml
+#
+# 2. VERIFY: Test that operators can still sync apps with new RBAC
+#
+# 3. APPLY: Then apply the full v3.0 overlay
+#    kubectl apply -k overlays/v3.0
+#
+# 4. VALIDATE: Run validation checks
+#    ./scripts/validate.sh
+#
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: argocd
+
+# ===========================================================================
+# RESOURCES
+# ===========================================================================
+
+resources:
+  # Using non-HA manifests for minikube (single node - HA anti-affinity rules won't work)
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.0.4/manifests/install.yaml
+
+  # Our base configuration
+  - ../../base
+
+# ===========================================================================
+# PATCHES
+# ===========================================================================
+
+patches:
+  # Disable automatic deletion of argocd-initial-admin-secret (for demo/testing)
+  - path: disable-secret-deletion.yaml
+    target:
+      kind: Job
+      name: argocd-initial-admin-secret-cleanup
+  # Apply our argocd-cm configuration
+  - path: ../../base/argocd-cm.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-cm
+  # RBAC migration for v3.0 fine-grained permissions
+  - path: migrations/argocd-rbac-v3-migration.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-rbac-cm
+  # Apply our argocd-secret (admin password)
+  - path: ../../base/argocd-secret.yaml
+    target:
+      kind: Secret
+      name: argocd-secret
+  # Server insecure mode for ingress with TLS termination
+  - path: ../../base/argocd-cmd-params-cm.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-cmd-params-cm
+
+  # Expose argocd-server as NodePort
+  - target:
+      kind: Service
+      name: argocd-server
+    patch: |-
+      - op: replace
+        path: /spec/type
+        value: NodePort
+      - op: add
+        path: /spec/ports/0/nodePort
+        value: 30080
+      - op: add
+        path: /spec/ports/1/nodePort
+        value: 30443
+
+# ===========================================================================
+# ANNOTATIONS
+# ===========================================================================
+# Use commonAnnotations instead of commonLabels to avoid modifying immutable
+# StatefulSet selector fields during upgrades
+
+commonAnnotations:
+  argocd.version: "v3.0.4"
+  demo.upgrade.step: "v2.14-to-v3.0"
+  demo.upgrade.major: "true"
+
+# ===========================================================================
+# POST-UPGRADE VALIDATION CHECKLIST
+# ===========================================================================
+#
+# After upgrading to v3.0, verify:
+#
+# 1. VERSION CHECK
+#    kubectl get deploy argocd-server -o jsonpath='{.spec.template.spec.containers[0].image}'
+#    Expected: quay.io/argoproj/argocd:v3.0.4
+#
+# 2. REDIS RUNNING
+#    kubectl get deploy -n argocd | grep redis
+#    Expected: argocd-redis deployment running (Redis stores health statuses in v3.0)
+#
+# 3. RBAC TEST - Owner role
+#    argocd account can-i sync applications '*/*' --as admin
+#    Expected: yes
+#
+# 4. RBAC TEST - Operator role
+#    argocd account can-i sync applications 'test-apps/*' --as operator
+#    Expected: yes
+#
+# 5. RBAC TEST - Operator can update managed resources
+#    argocd account can-i update/deployment applications 'test-apps/*' --as operator
+#    Expected: yes (this is the new v3.0 requirement!)
+#
+# 6. APPLICATIONS HEALTHY
+#    argocd app list
+#    Expected: All apps Healthy/Synced
+#
+# 7. NO ERRORS IN LOGS
+#    kubectl logs -l app.kubernetes.io/name=argocd-server -n argocd | grep -i error
+#    Expected: No critical errors

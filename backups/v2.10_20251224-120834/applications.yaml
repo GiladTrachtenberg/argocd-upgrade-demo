@@ -1,0 +1,144 @@
+apiVersion: v1
+items:
+- apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"argoproj.io/v1alpha1","kind":"Application","metadata":{"annotations":{},"finalizers":["resources-finalizer.argocd.argoproj.io"],"labels":{"app.kubernetes.io/name":"guestbook","demo.test-app":"true"},"name":"guestbook","namespace":"argocd"},"spec":{"destination":{"namespace":"guestbook","server":"https://kubernetes.default.svc"},"project":"test-apps","revisionHistoryLimit":3,"source":{"path":"guestbook","repoURL":"https://github.com/argoproj/argocd-example-apps.git","targetRevision":"HEAD"},"syncPolicy":{"automated":{"allowEmpty":false,"prune":true,"selfHeal":true},"retry":{"backoff":{"duration":"5s","factor":2,"maxDuration":"3m"},"limit":5},"syncOptions":["CreateNamespace=true","ApplyOutOfSyncOnly=true"]}}}
+    creationTimestamp: "2025-12-24T09:41:51Z"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    generation: 17
+    labels:
+      app.kubernetes.io/name: guestbook
+      demo.test-app: "true"
+    name: guestbook
+    namespace: argocd
+    resourceVersion: "2290"
+    uid: 0a9d70b5-e749-45ec-99c5-75d1bed0d641
+  spec:
+    destination:
+      namespace: guestbook
+      server: https://kubernetes.default.svc
+    project: test-apps
+    revisionHistoryLimit: 3
+    source:
+      path: guestbook
+      repoURL: https://github.com/argoproj/argocd-example-apps.git
+      targetRevision: HEAD
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      retry:
+        backoff:
+          duration: 5s
+          factor: 2
+          maxDuration: 3m
+        limit: 5
+      syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+  status:
+    controllerNamespace: argocd
+    health:
+      status: Healthy
+    history:
+    - deployStartedAt: "2025-12-24T09:41:52Z"
+      deployedAt: "2025-12-24T09:41:55Z"
+      id: 0
+      revision: 0d521c6e049889134f3122eb32d7ed342f43ca0d
+      source:
+        path: guestbook
+        repoURL: https://github.com/argoproj/argocd-example-apps.git
+        targetRevision: HEAD
+    operationState:
+      finishedAt: "2025-12-24T09:41:55Z"
+      message: successfully synced (all tasks run)
+      operation:
+        initiatedBy:
+          automated: true
+        retry:
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+          limit: 5
+        sync:
+          prune: true
+          revision: 0d521c6e049889134f3122eb32d7ed342f43ca0d
+          syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
+      phase: Succeeded
+      startedAt: "2025-12-24T09:41:52Z"
+      syncResult:
+        resources:
+        - group: ""
+          hookPhase: Running
+          kind: Namespace
+          message: namespace/guestbook created
+          name: guestbook
+          namespace: ""
+          status: Synced
+          syncPhase: PreSync
+          version: v1
+        - group: ""
+          hookPhase: Running
+          kind: Service
+          message: service/guestbook-ui created
+          name: guestbook-ui
+          namespace: guestbook
+          status: Synced
+          syncPhase: Sync
+          version: v1
+        - group: apps
+          hookPhase: Running
+          kind: Deployment
+          message: deployment.apps/guestbook-ui created
+          name: guestbook-ui
+          namespace: guestbook
+          status: Synced
+          syncPhase: Sync
+          version: v1
+        revision: 0d521c6e049889134f3122eb32d7ed342f43ca0d
+        source:
+          path: guestbook
+          repoURL: https://github.com/argoproj/argocd-example-apps.git
+          targetRevision: HEAD
+    reconciledAt: "2025-12-24T10:05:58Z"
+    resources:
+    - health:
+        status: Healthy
+      kind: Service
+      name: guestbook-ui
+      namespace: guestbook
+      status: Synced
+      version: v1
+    - group: apps
+      health:
+        status: Healthy
+      kind: Deployment
+      name: guestbook-ui
+      namespace: guestbook
+      status: Synced
+      version: v1
+    sourceType: Directory
+    summary:
+      images:
+      - gcr.io/google-samples/gb-frontend:v5
+    sync:
+      comparedTo:
+        destination:
+          namespace: guestbook
+          server: https://kubernetes.default.svc
+        source:
+          path: guestbook
+          repoURL: https://github.com/argoproj/argocd-example-apps.git
+          targetRevision: HEAD
+      revision: 0d521c6e049889134f3122eb32d7ed342f43ca0d
+      status: Synced
+kind: List
+metadata:
+  resourceVersion: ""

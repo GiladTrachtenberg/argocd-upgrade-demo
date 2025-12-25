@@ -1,0 +1,37 @@
+# Argo CD ConfigMap - Core Configuration
+#
+# Adapted from production setup at:
+# /Users/giladtrachtenberg/work/git/platform-infra/k8s/argocd/setup/manifests/argocd-cm.yaml
+#
+# PRODUCTION VS MINIKUBE:
+# ┌─────────────────────────────────┬──────────────────────────────────────────┐
+# │ Production Setting              │ Minikube Adaptation                      │
+# ├─────────────────────────────────┼──────────────────────────────────────────┤
+# │ accounts.admin.enabled: false   │ KEPT: true (need admin for testing)     │
+# │ url: https://argocd.hub...      │ url: https://localhost:8080              │
+# │ dex.config (Google SSO)         │ REMOVED: No SSO for demo                 │
+# │ resource.ignoreResourceUpdates  │ KEPT: Same production behavior           │
+# │ kustomize.buildOptions          │ KEPT: --enable-helm                      │
+# └─────────────────────────────────┴──────────────────────────────────────────┘
+#
+# This ConfigMap is applied as a patch in the version-specific overlays.
+#
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  accounts.admin.enabled: "true"
+  url: https://localhost:8080
+  resource.ignoreResourceUpdatesEnabled: "true"
+
+  resource.customizations.ignoreResourceUpdates.external-secrets.io_ExternalSecret:
+    |
+    jqPathExpressions:
+    - .status.refreshTime
+
+  kustomize.buildOptions: --enable-helm

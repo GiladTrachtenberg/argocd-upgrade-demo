@@ -1,0 +1,65 @@
+# Argo CD AppProject for Test Applications
+#
+# This project contains sample applications used to validate GitOps flows
+# after each upgrade step.
+#
+# WHY TEST APPS?
+# - Verify sync operations work after upgrade
+# - Test health assessment accuracy
+# - Validate RBAC permissions
+# - Confirm UI functionality
+#
+# APPLICATIONS IN THIS PROJECT:
+# 1. guestbook     - Kustomize-based app (official Argo CD example)
+# 2. helm-nginx    - Helm chart-based app
+# 3. plain-yaml    - Simple YAML manifests
+# 4. app-of-apps   - Parent/child application pattern
+#
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: test-apps
+  namespace: argocd
+  # Finalizer ensures project isn't deleted while apps exist
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # Project description
+  description: Test applications for Argo CD upgrade validation
+
+  # Source repositories allowed for this project
+  sourceRepos:
+    # Allow any repository for testing flexibility
+    - '*'
+
+  # Destination clusters and namespaces
+  destinations:
+    # Allow deployment to any namespace on in-cluster
+    - namespace: '*'
+      server: https://kubernetes.default.svc
+
+  # Cluster resources this project can manage
+  clusterResourceWhitelist:
+    # Allow all cluster resources (namespaces, CRDs, etc.)
+    - group: '*'
+      kind: '*'
+
+  # Namespace resources this project can manage
+  namespaceResourceWhitelist:
+    # Allow all namespace resources
+    - group: '*'
+      kind: '*'
+
+  # Orphaned resources monitoring
+  orphanedResources:
+    warn: true
+
+  # Roles specific to this project (in addition to global RBAC)
+  roles:
+    - name: test-app-admin
+      description: Full access to test applications
+      policies:
+        - p, proj:test-apps:test-app-admin, applications, *, test-apps/*, allow
+      groups:
+        - admin
+        - operator

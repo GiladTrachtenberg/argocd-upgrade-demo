@@ -1,0 +1,15 @@
+# Argo CD namespace
+#
+# This creates the 'argocd' namespace where all Argo CD components will run.
+# The namespace is created before applying the HA manifests to ensure it exists.
+#
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    # Standard Argo CD labels (matching official manifests)
+    app.kubernetes.io/name: argocd
+    app.kubernetes.io/part-of: argocd
+    # Demo-specific labels
+    demo.argocd.upgrade: "true"

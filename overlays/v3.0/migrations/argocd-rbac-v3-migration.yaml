@@ -1,0 +1,79 @@
+# ⚠️  CRITICAL: Apply this BEFORE upgrading to v3.0! ⚠️
+#
+# This ConfigMap adds the fine-grained RBAC permissions required in v3.0.
+#
+# WHAT CHANGED IN v3.0:
+# ====================
+# Before v3.0:
+#   - Having 'update' permission on Application implied you could update
+#     all resources managed by that Application (Deployments, Services, etc.)
+#   - Same for 'delete' - deleting an Application implied deleting its resources
+#
+# After v3.0:
+#   - 'update' on Application only lets you update the Application CR itself
+#   - 'delete' on Application only lets you delete the Application CR itself
+#   - To update/delete MANAGED RESOURCES, you need explicit permissions:
+#     - applications, update/*, project/*, allow
+#     - applications, delete/*, project/*, allow
+#
+# WHY THIS MATTERS:
+# =================
+# If you don't add these permissions, your operators will be able to:
+#   ✓ View applications
+#   ✓ Sync applications
+#   ✓ Trigger resource actions
+#   ✗ Update managed resources (e.g., edit a ConfigMap via UI)  <-- BROKEN!
+#   ✗ Delete managed resources (e.g., delete a stuck Pod)       <-- BROKEN!
+#
+# PRODUCTION IMPACT:
+# ==================
+# In production, our operators need to:
+# - Restart pods (requires delete on Pod)
+# - Edit ConfigMaps for quick fixes (requires update on ConfigMap)
+# - Scale deployments (requires update on Deployment)
+#
+# Without these new permissions, operators lose these abilities in v3.0!
+#
+# OFFICIAL DOCUMENTATION:
+# https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/2.x-3.0/#fine-grained-rbac
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-rbac-cm
+    app.kubernetes.io/part-of: argocd
+    argocd.version.migration: "v3.0"
+data:
+  policy.default: role:readonly
+  scopes: "[groups]"
+  policy.csv: |
+    g, admin, role:owner
+    g, operator, role:operator
+    g, viewer, role:viewer
+    p, role:owner, applications, *, */*, allow
+    p, role:owner, clusters, *, *, allow
+    p, role:owner, repositories, *, *, allow
+    p, role:owner, projects, *, *, allow
+    p, role:owner, accounts, *, *, allow
+    p, role:owner, gpgkeys, *, *, allow
+    p, role:owner, logs, *, *, allow
+    p, role:owner, exec, *, *, allow
+    p, role:operator, applications, get, */*, allow
+    p, role:operator, applications, list, */*, allow
+    p, role:operator, applications, watch, */*, allow
+    p, role:operator, applications, sync, */*, allow
+    p, role:operator, applications, action/*, */*, allow
+    p, role:operator, logs, get, */*, allow
+    p, role:operator, applications, *, test-apps/*, allow
+    p, role:operator, applications, update/*, */*, allow
+    p, role:operator, applications, delete/*, */*, allow
+    p, role:viewer, applications, get, */*, allow
+    p, role:viewer, applications, list, */*, allow
+    p, role:viewer, applications, watch, */*, allow
+    p, role:viewer, clusters, get, *, allow
+    p, role:viewer, repositories, get, *, allow
+    p, role:viewer, projects, get, *, allow
+    p, role:readonly, applications, get, */*, allow
+    p, role:readonly, applications, list, */*, allow

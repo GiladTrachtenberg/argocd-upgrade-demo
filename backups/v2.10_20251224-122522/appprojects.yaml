@@ -1,0 +1,61 @@
+apiVersion: v1
+items:
+- apiVersion: argoproj.io/v1alpha1
+  kind: AppProject
+  metadata:
+    creationTimestamp: "2025-12-24T10:22:41Z"
+    generation: 1
+    name: default
+    namespace: argocd
+    resourceVersion: "840"
+    uid: 3b711387-fba8-4fa9-9a8c-4b6390858c94
+  spec:
+    clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+    destinations:
+    - namespace: '*'
+      server: '*'
+    sourceRepos:
+    - '*'
+  status: {}
+- apiVersion: argoproj.io/v1alpha1
+  kind: AppProject
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"argoproj.io/v1alpha1","kind":"AppProject","metadata":{"annotations":{},"finalizers":["resources-finalizer.argocd.argoproj.io"],"name":"test-apps","namespace":"argocd"},"spec":{"clusterResourceWhitelist":[{"group":"*","kind":"*"}],"description":"Test applications for Argo CD upgrade validation","destinations":[{"namespace":"*","server":"https://kubernetes.default.svc"}],"namespaceResourceWhitelist":[{"group":"*","kind":"*"}],"orphanedResources":{"warn":true},"roles":[{"description":"Full access to test applications","groups":["admin","operator"],"name":"test-app-admin","policies":["p, proj:test-apps:test-app-admin, applications, *, test-apps/*, allow"]}],"sourceRepos":["*"]}}
+    creationTimestamp: "2025-12-24T10:23:18Z"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    generation: 1
+    name: test-apps
+    namespace: argocd
+    resourceVersion: "903"
+    uid: e29f135c-610f-4e58-8c98-e268f83ef5e8
+  spec:
+    clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+    description: Test applications for Argo CD upgrade validation
+    destinations:
+    - namespace: '*'
+      server: https://kubernetes.default.svc
+    namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+    orphanedResources:
+      warn: true
+    roles:
+    - description: Full access to test applications
+      groups:
+      - admin
+      - operator
+      name: test-app-admin
+      policies:
+      - p, proj:test-apps:test-app-admin, applications, *, test-apps/*, allow
+    sourceRepos:
+    - '*'
+kind: List
+metadata:
+  resourceVersion: ""

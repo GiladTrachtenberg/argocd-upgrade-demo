@@ -1,0 +1,200 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  data:
+    accounts.admin.enabled: "true"
+    kustomize.buildOptions: --enable-helm
+    resource.customizations.ignoreResourceUpdates.external-secrets.io_ExternalSecret: |
+      jqPathExpressions:
+      - .status.refreshTime
+    resource.ignoreResourceUpdatesEnabled: "true"
+    url: https://localhost:8080
+  kind: ConfigMap
+  metadata:
+    annotations:
+      argocd.version: v2.14.2
+      demo.upgrade.step: v2.10-to-v2.14
+    creationTimestamp: "2025-12-25T10:35:46Z"
+    labels:
+      app.kubernetes.io/name: argocd-cm
+      app.kubernetes.io/part-of: argocd
+    name: argocd-cm
+    namespace: argocd
+    resourceVersion: "1545"
+    uid: 5f30fb80-ec44-45ba-a843-b6e9b53e9367
+- apiVersion: v1
+  data:
+    server.insecure: "true"
+  kind: ConfigMap
+  metadata:
+    annotations:
+      argocd.version: v2.14.2
+      demo.upgrade.step: v2.10-to-v2.14
+    creationTimestamp: "2025-12-25T10:35:46Z"
+    labels:
+      app.kubernetes.io/name: argocd-cmd-params-cm
+      app.kubernetes.io/part-of: argocd
+    name: argocd-cmd-params-cm
+    namespace: argocd
+    resourceVersion: "1546"
+    uid: d5a8296b-f66c-4e0a-b914-98a8dafb1cca
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    annotations:
+      argocd.version: v2.14.2
+      demo.upgrade.step: v2.10-to-v2.14
+    creationTimestamp: "2025-12-25T10:35:46Z"
+    labels:
+      app.kubernetes.io/name: argocd-gpg-keys-cm
+      app.kubernetes.io/part-of: argocd
+    name: argocd-gpg-keys-cm
+    namespace: argocd
+    resourceVersion: "1547"
+    uid: 6d28bfcc-9e2f-43b1-9202-d9814284a1f8
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    annotations:
+      argocd.version: v2.14.2
+      demo.upgrade.step: v2.10-to-v2.14
+    creationTimestamp: "2025-12-25T10:35:46Z"
+    labels:
+      app.kubernetes.io/component: notifications-controller
+      app.kubernetes.io/name: argocd-notifications-controller
+      app.kubernetes.io/part-of: argocd
+    name: argocd-notifications-cm
+    namespace: argocd
+    resourceVersion: "1548"
+    uid: d089548d-7fe4-4caa-b66c-ef1d03388bba
+- apiVersion: v1
+  data:
+    policy.csv: |
+      g, admin, role:owner
+      g, operator, role:operator
+      g, viewer, role:viewer
+      p, role:owner, applications, *, */*, allow
+      p, role:owner, clusters, *, *, allow
+      p, role:owner, repositories, *, *, allow
+      p, role:owner, projects, *, *, allow
+      p, role:owner, accounts, *, *, allow
+      p, role:owner, gpgkeys, *, *, allow
+      p, role:owner, logs, *, *, allow
+      p, role:owner, exec, *, *, allow
+      p, role:operator, applications, get, */*, allow
+      p, role:operator, applications, list, */*, allow
+      p, role:operator, applications, watch, */*, allow
+      p, role:operator, applications, sync, */*, allow
+      p, role:operator, applications, action/*, */*, allow
+      p, role:operator, logs, get, */*, allow
+      p, role:operator, applications, *, test-apps/*, allow
+      p, role:operator, applications, update/*, */*, allow
+      p, role:operator, applications, delete/*, */*, allow
+      p, role:viewer, applications, get, */*, allow
+      p, role:viewer, applications, list, */*, allow
+      p, role:viewer, applications, watch, */*, allow
+      p, role:viewer, clusters, get, *, allow
+      p, role:viewer, repositories, get, *, allow
+      p, role:viewer, projects, get, *, allow
+      p, role:readonly, applications, get, */*, allow
+      p, role:readonly, applications, list, */*, allow
+    policy.default: role:readonly
+    scopes: '[groups]'
+  kind: ConfigMap
+  metadata:
+    annotations:
+      argocd.version: v2.14.2
+      demo.upgrade.step: v2.10-to-v2.14
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"policy.csv":"g, admin, role:owner\ng, operator, role:operator\ng, viewer, role:viewer\np, role:owner, applications, *, */*, allow\np, role:owner, clusters, *, *, allow\np, role:owner, repositories, *, *, allow\np, role:owner, projects, *, *, allow\np, role:owner, accounts, *, *, allow\np, role:owner, gpgkeys, *, *, allow\np, role:owner, logs, *, *, allow\np, role:owner, exec, *, *, allow\np, role:operator, applications, get, */*, allow\np, role:operator, applications, list, */*, allow\np, role:operator, applications, watch, */*, allow\np, role:operator, applications, sync, */*, allow\np, role:operator, applications, action/*, */*, allow\np, role:operator, logs, get, */*, allow\np, role:operator, applications, *, test-apps/*, allow\np, role:operator, applications, update/*, */*, allow\np, role:operator, applications, delete/*, */*, allow\np, role:viewer, applications, get, */*, allow\np, role:viewer, applications, list, */*, allow\np, role:viewer, applications, watch, */*, allow\np, role:viewer, clusters, get, *, allow\np, role:viewer, repositories, get, *, allow\np, role:viewer, projects, get, *, allow\np, role:readonly, applications, get, */*, allow\np, role:readonly, applications, list, */*, allow\n","policy.default":"role:readonly","scopes":"[groups]"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"argocd-rbac-cm","app.kubernetes.io/part-of":"argocd","argocd.version.migration":"v3.0"},"name":"argocd-rbac-cm","namespace":"argocd"}}
+    creationTimestamp: "2025-12-25T10:35:46Z"
+    labels:
+      app.kubernetes.io/name: argocd-rbac-cm
+      app.kubernetes.io/part-of: argocd
+      argocd.version.migration: v3.0
+    name: argocd-rbac-cm
+    namespace: argocd
+    resourceVersion: "5445"
+    uid: b8cd2181-8312-46df-9765-b7f648b2cc94
+- apiVersion: v1
+  data:
+    ssh_known_hosts: |
+      # This file was automatically generated by hack/update-ssh-known-hosts.sh. DO NOT EDIT
+      [ssh.github.com]:443 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
+      [ssh.github.com]:443 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+      [ssh.github.com]:443 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=
+      bitbucket.org ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPIQmuzMBuKdWeF4+a2sjSSpBK0iqitSQ+5BM9KhpexuGt20JpTVM7u5BDZngncgrqDMbWdxMWWOGtZ9UgbqgZE=
+      bitbucket.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIazEu89wgQZ4bqs3d63QSMzYVa0MuJ2e2gKTKqu+UUO
+      bitbucket.org ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDQeJzhupRu0u0cdegZIa8e86EG2qOCsIsD1Xw0xSeiPDlCr7kq97NLmMbpKTX6Esc30NuoqEEHCuc7yWtwp8dI76EEEB1VqY9QJq6vk+aySyboD5QF61I/1WeTwu+deCbgKMGbUijeXhtfbxSxm6JwGrXrhBdofTsbKRUsrN1WoNgUa8uqN1Vx6WAJw1JHPhglEGGHea6QICwJOAr/6mrui/oB7pkaWKHj3z7d1IC4KWLtY47elvjbaTlkN04Kc/5LFEirorGYVbt15kAUlqGM65pk6ZBxtaO3+30LVlORZkxOh+LKL/BvbZ/iRNhItLqNyieoQj/uh/7Iv4uyH/cV/0b4WDSd3DptigWq84lJubb9t/DnZlrJazxyDCulTmKdOR7vs9gMTo+uoIrPSb8ScTtvw65+odKAlBj59dhnVp9zd7QUojOpXlL62Aw56U4oO+FALuevvMjiWeavKhJqlR7i5n9srYcrNV7ttmDw7kf/97P5zauIhxcjX+xHv4M=
+      github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
+      github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+      github.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=
+      gitlab.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFSMqzJeV9rUzU4kWitGjeR4PWSa29SPqJ1fVkhtj3Hw9xjLVXVYrU9QlYWrOLXBpQ6KWjbjTDTdDkoohFzgbEY=
+      gitlab.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAfuCHKVTjquxvt6CM6tdG4SLp1Btn/nOeHHE5UOzRdf
+      gitlab.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsj2bNKTBSpIYDEGk9KxsGh3mySTRgMtXL583qmBpzeQ+jqCMRgBqB98u3z++J1sKlXHWfM9dyhSevkMwSbhoR8XIq/U0tCNyokEi/ueaBMCvbcTHhO7FcwzY92WK4Yt0aGROY5qX2UKSeOvuP4D6TPqKF1onrSzH9bx9XUf2lEdWT/ia1NEKjunUqu1xOB/StKDHMoX4/OKyIzuS0q/T1zOATthvasJFoPrAjkohTyaDUz2LN5JoH839hViyEG82yB+MjcFV5MU3N1l1QL3cVUCh93xSaua1N85qivl+siMkPGbO5xR/En4iEY6K2XPASUEMaieWVNTRCtJ4S8H+9
+      ssh.dev.azure.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7Hr1oTWqNqOlzGJOfGJ4NakVyIzf1rXYd4d7wo6jBlkLvCA4odBlL0mDUyZ0/QUfTTqeu+tm22gOsv+VrVTMk6vwRU75gY/y9ut5Mb3bR5BV58dKXyq9A9UeB5Cakehn5Zgm6x1mKoVyf+FFn26iYqXJRgzIZZcZ5V6hrE0Qg39kZm4az48o0AUbf6Sp4SLdvnuMa2sVNwHBboS7EJkm57XQPVU3/QpyNLHbWDdzwtrlS+ez30S3AdYhLKEOxAG8weOnyrtLJAUen9mTkol8oII1edf7mWWbWVf0nBmly21+nZcmCTISQBtdcyPaEno7fFQMDD26/s0lfKob4Kw8H
+      vs-ssh.visualstudio.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7Hr1oTWqNqOlzGJOfGJ4NakVyIzf1rXYd4d7wo6jBlkLvCA4odBlL0mDUyZ0/QUfTTqeu+tm22gOsv+VrVTMk6vwRU75gY/y9ut5Mb3bR5BV58dKXyq9A9UeB5Cakehn5Zgm6x1mKoVyf+FFn26iYqXJRgzIZZcZ5V6hrE0Qg39kZm4az48o0AUbf6Sp4SLdvnuMa2sVNwHBboS7EJkm57XQPVU3/QpyNLHbWDdzwtrlS+ez30S3AdYhLKEOxAG8weOnyrtLJAUen9mTkol8oII1edf7mWWbWVf0nBmly21+nZcmCTISQBtdcyPaEno7fFQMDD26/s0lfKob4Kw8H
+  kind: ConfigMap
+  metadata:
+    annotations:
+      argocd.version: v2.14.2
+      demo.upgrade.step: v2.10-to-v2.14
+    creationTimestamp: "2025-12-25T10:35:46Z"
+    labels:
+      app.kubernetes.io/name: argocd-ssh-known-hosts-cm
+      app.kubernetes.io/part-of: argocd
+    name: argocd-ssh-known-hosts-cm
+    namespace: argocd
+    resourceVersion: "1550"
+    uid: 4f08bf02-08ca-43ae-b2ad-8ee591514e2d
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    annotations:
+      argocd.version: v2.14.2
+      demo.upgrade.step: v2.10-to-v2.14
+    creationTimestamp: "2025-12-25T10:35:46Z"
+    labels:
+      app.kubernetes.io/name: argocd-tls-certs-cm
+      app.kubernetes.io/part-of: argocd
+    name: argocd-tls-certs-cm
+    namespace: argocd
+    resourceVersion: "1551"
+    uid: ae9a53ec-3e00-47fe-b73d-51dee95ced04
+- apiVersion: v1
+  data:
+    ca.crt: |
+      -----BEGIN CERTIFICATE-----
+      MIIDBjCCAe6gAwIBAgIBATANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDEwptaW5p
+      a3ViZUNBMB4XDTI1MTIyNDEwMzQzOFoXDTM1MTIyMzEwMzQzOFowFTETMBEGA1UE
+      AxMKbWluaWt1YmVDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALLp
+      zWRS57hTZs9sSAbI24aciWv+aAEyzrprCyG6BnnI9P8tOZ1qNngR6X27LYHEsQ2B
+      OzXQteicSvvMgNvecttOsjjkprCG3WqbA7oXgxLmcply8euoFu3kJsrmn1AgyxXB
+      7MwfuhIYrbc4t+oyWEhVZXrtQQ10O+a6Ly/QN4d04Pt03R4BTS94674DbB9tyj63
+      2Mx93GAO9FBqk5xUblT7ugFhfNq3aSPr2bvMLbbuR2w+C8zDb8mcTafQbShU89P5
+      t7wCWG84Px1Iz4R5HHdINQMh7cn6b6m0NhNdGgpkcGcIwTr9LuHcBxVkdvt6B9cT
+      Da71rghHIPoGj1N2EHcCAwEAAaNhMF8wDgYDVR0PAQH/BAQDAgKkMB0GA1UdJQQW
+      MBQGCCsGAQUFBwMCBggrBgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQW
+      BBTsrEFO3RegT3rnj+hkLCYJ/JJNhzANBgkqhkiG9w0BAQsFAAOCAQEACyqtRreq
+      P1fMzpP5bUxwdOFaY6V93vKz2wNR6wOS95ckDx4/00gqGO86zFgYts2beohxupHA
+      ZG8cqeyaS3h+UQYqCv24iP8fb9qaXxvm6Gc1H/+ZCrrNOydRm/KGx0P8SkypGgc5
+      4V/+d8tmJARt73sYfIjfWAoyDAXgkpatCK2H5j9NLaaIw1i4yU1j/poEe4ZpLu/b
+      5ntZzHjxjv5ucKGVGKyJ2rhl23XBlJJbQYbaMPsX4UfiloKSgAvahi03R7tgan/G
+      mG7Lff8fgpXs1at5q9lfRsYb+xpLqLZWpbga5dbSuOkDjpjQk2DmMx7D3M3njFtB
+      POAHXchMLbpwVw==
+      -----END CERTIFICATE-----
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubernetes.io/description: Contains a CA bundle that can be used to verify the
+        kube-apiserver when using internal endpoints such as the internal service
+        IP or kubernetes.default.svc. No other usage is guaranteed across distributions
+        of Kubernetes clusters.
+    creationTimestamp: "2025-12-25T10:35:46Z"
+    name: kube-root-ca.crt
+    namespace: argocd
+    resourceVersion: "574"
+    uid: fa48c6cf-6a1b-4c1c-8370-b6e1a0759875
+kind: List
+metadata:
+  resourceVersion: ""

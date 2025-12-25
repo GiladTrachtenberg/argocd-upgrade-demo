@@ -1,0 +1,40 @@
+# Test Applications Kustomization
+#
+# Deploy all test applications at once with:
+#   kubectl apply -k test-apps/
+#
+# Or deploy individually:
+#   kubectl apply -f test-apps/project.yaml
+#   kubectl apply -f test-apps/applicationset.yaml
+#
+# MIGRATION FROM APP-OF-APPS:
+# - Replaced app-of-apps pattern with modern ApplicationSet
+# - Removed individual Application manifests (now generated)
+# - ApplicationSet automatically discovers apps from Git
+#
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: argocd
+
+resources:
+  # AppProject first (ApplicationSet depends on it)
+  - project.yaml
+
+  # ApplicationSet replaces app-of-apps and individual applications
+  # This will automatically generate Applications for:
+  # - guestbook
+  # - helm-nginx (if exists in the repo)
+  # - plain-yaml (if exists in the repo)
+  # - any other directories found in the repository
+  - applicationset.yaml
+
+  # LEGACY (commented out - replaced by ApplicationSet):
+  # - guestbook/application.yaml
+  # - helm-nginx/application.yaml
+  # - plain-yaml/application.yaml
+  # - app-of-apps/application.yaml
+
+commonLabels:
+  demo.argocd.upgrade: "true"
+  demo.test-suite: "true"

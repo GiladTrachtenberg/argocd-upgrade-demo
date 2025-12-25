@@ -1,0 +1,125 @@
+# Argo CD v3.1.x Overlay
+#
+# UPGRADE STEP: v3.0.x → v3.1.x
+#
+# This upgrade includes security improvements and API changes.
+#
+# ===========================================================================
+# BREAKING CHANGES IN v3.1
+# ===========================================================================
+#
+# 1. SYMLINK PROTECTION
+#    - Symlinks in /app/shared are now blocked if target is outside the directory
+#    - Impact: 500 errors if any static assets use out-of-bounds symlinks
+#    - ACTION: Check for symlink usage in custom UI extensions
+#    - Note: Standard Argo CD usage is not affected
+#
+# 2. ACTIONS API V1 DEPRECATED
+#    - Old endpoint: /api/v1/applications/{name}/resource/actions
+#    - New endpoint: /api/v1/applications/{name}/resource/actions/v2
+#    - ACTION: Update any custom integrations or scripts using the Actions API
+#    - Note: The UI uses the new v2 API automatically
+#
+# 3. MINOR API CHANGES
+#    - Some internal API response formats may have changed
+#    - ACTION: Check custom integrations
+#
+# OFFICIAL DOCS:
+# https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.0-3.1/
+#
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: argocd
+resources:
+  # Using non-HA manifests for minikube (single node - HA anti-affinity rules won't work)
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.1.1/manifests/install.yaml
+  - ../../base
+patches:
+  # RBAC migration for v3.0+ fine-grained permissions
+  - path: ../v3.0/migrations/argocd-rbac-v3-migration.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-rbac-cm
+  # Disable automatic deletion of argocd-initial-admin-secret (for demo/testing)
+  - path: disable-secret-deletion.yaml
+    target:
+      kind: Job
+      name: argocd-initial-admin-secret-cleanup
+  - path: ../../base/argocd-cm.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-cm
+  - path: ../../base/argocd-secret.yaml
+    target:
+      kind: Secret
+      name: argocd-secret
+  - path: ../../base/argocd-cmd-params-cm.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-cmd-params-cm
+  - target:
+      kind: Service
+      name: argocd-server
+    patch: |-
+      - op: replace
+        path: /spec/type
+        value: NodePort
+      - op: add
+        path: /spec/ports/0/nodePort
+        value: 30080
+      - op: add
+        path: /spec/ports/1/nodePort
+        value: 30443
+# Use commonAnnotations instead of commonLabels to avoid modifying immutable
+# StatefulSet selector fields during upgrades
+commonAnnotations:
+  argocd.version: "v3.1.1"
+  demo.upgrade.step: "v3.0-to-v3.1"
+# ===========================================================================
+# POST-UPGRADE VALIDATION CHECKLIST
+# ===========================================================================
+#
+# After upgrading to v3.1, verify:
+#
+# 1. VERSION CHECK
+#    kubectl get deploy argocd-server -o jsonpath='{.spec.template.spec.containers[0].image}'
+#    Expected: quay.io/argoproj/argocd:v3.1.1
+#
+# 2. NO 500 ERRORS (symlink protection)
+#    kubectl logs -l app.kubernetes.io/name=argocd-server -n argocd | grep -i "500\|symlink"
+#    Expected: No symlink-related errors
+#
+# 3. ACTIONS API V2 WORKS
+#    Test via UI: Select an app → Click on a Deployment → Actions → Restart
+#    Expected: Action executes successfully
+#
+# 4. APPLICATIONS HEALTHY
+#    argocd app list
+#    Expected: All apps Healthy/Synced
+#
+# 5. RBAC STILL WORKS (from v3.0 migration)
+#    argocd account can-i update/deployment applications 'test-apps/*' --as operator
+#    Expected: yes
+#
+# ===========================================================================
+# NOTES FOR CUSTOM INTEGRATIONS
+# ===========================================================================
+#
+# If you have scripts or tools using the Actions API, update them:
+#
+# BEFORE (v1 - deprecated):
+#   POST /api/v1/applications/{name}/resource/actions
+#   {
+#     "action": "restart",
+#     "resourceName": "my-deployment",
+#     "resourceKind": "Deployment"
+#   }
+#
+# AFTER (v2):
+#   POST /api/v1/applications/{name}/resource/actions/v2
+#   {
+#     "action": "restart",
+#     "resourceName": "my-deployment",
+#     "resourceKind": "Deployment",
+#     "resourceNamespace": "my-namespace"  # New: namespace is now required
+#   }
