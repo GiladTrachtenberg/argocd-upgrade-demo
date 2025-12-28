@@ -113,11 +113,11 @@ main() {
 
   # Check 5: API Server
   log_info "Checking API server..."
-  if curl -s -k --connect-timeout 5 https://argocd.local/healthz 2>/dev/null | grep -q "ok"; then
+  if curl -s -k --connect-timeout 2 https://localhost:8443/healthz 2>/dev/null | grep -q "ok"; then
     log_success "API server is healthy"
     ((passed_checks++))
   else
-    log_warning "Could not reach API server - ensure 'minikube tunnel' is running"
+    log_warning "Could not reach API server - ensure port-forward is running"
     # Don't count as failure since port-forward might not be active
   fi
   ((total_checks++))

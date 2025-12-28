@@ -18,8 +18,8 @@
 #   ./scripts/01-install-argocd-2.10.sh
 #
 # AFTER RUNNING:
-#   - Ensure minikube tunnel is running: minikube tunnel -p argocd-upgrade-demo
-#   - Access Argo CD UI: https://argocd.local
+#   - Start port-forward: kubectl port-forward svc/argocd-server -n argocd 8443:443
+#   - Access Argo CD UI: https://localhost:8443
 #   - Username: admin
 #   - Password: admin123 (or generated password shown in output)
 #
@@ -124,32 +124,14 @@ wait_for_ingress() {
     --selector=app.kubernetes.io/component=controller \
     --timeout=120s 2>/dev/null || log_warning "Ingress controller wait timed out"
 
-  # Wait for ArgoCD ingress to get an address
-  log_info "Waiting for ArgoCD ingress to be ready..."
-  local retries=0
-  local max_retries=30
-
-  while [ $retries -lt $max_retries ]; do
-    local ingress_addr=$(kubectl get ingress argocd-server-ingress -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
-    if [ -n "$ingress_addr" ]; then
-      log_success "Ingress is ready at $ingress_addr"
-      break
-    fi
-    sleep 2
-    ((retries++))
-  done
-
-  if [ $retries -eq $max_retries ]; then
-    log_warning "Ingress address not assigned yet - this is OK for minikube"
-  fi
-
-  # Test connectivity via ingress (requires minikube tunnel running)
-  sleep 3
-  if curl -s -k --connect-timeout 5 https://argocd.local/healthz &>/dev/null; then
-    log_success "ArgoCD is accessible via https://argocd.local"
+  # Verify ArgoCD ingress exists (kept for production parity)
+  if kubectl get ingress argocd-server-ingress -n argocd &>/dev/null; then
+    log_success "Ingress resource is configured"
   else
-    log_warning "Could not reach ArgoCD via ingress - ensure 'minikube tunnel' is running"
+    log_warning "Ingress resource not found"
   fi
+
+  log_info "Local access: use 'kubectl port-forward svc/argocd-server -n argocd 8443:443'"
 }
 
 get_credentials() {
@@ -184,14 +166,15 @@ deploy_test_apps() {
     create_test_project
   fi
 
-  # Login to Argo CD via ingress
+  # Login to Argo CD (requires port-forward running in another terminal)
   log_info "Logging into Argo CD..."
   local password=$(cat "$PROJECT_ROOT/.credentials/password" 2>/dev/null || echo "admin123")
 
-  if argocd login argocd.local --username admin --password "$password" --insecure --grpc-web --skip-test-tls 2>/dev/null; then
+  # Try to login - this will only work if port-forward is already running
+  if argocd login localhost:8443 --username admin --password "$password" --insecure --grpc-web 2>/dev/null; then
     log_success "Logged into Argo CD"
   else
-    log_warning "Could not login to Argo CD CLI - will use kubectl instead"
+    log_warning "Could not login to Argo CD CLI (port-forward may not be running) - using kubectl instead"
   fi
 
   # Apply test apps project
@@ -284,14 +267,14 @@ run_validation() {
     ((errors++))
   fi
 
-  # Check server is responding via ingress (requires minikube tunnel)
-  if curl -s -k https://argocd.local/healthz &>/dev/null; then
-    log_success "Argo CD server is responding via ingress"
+  # Check server is responding (via port-forward if running)
+  if curl -s -k --connect-timeout 2 https://localhost:8443/healthz &>/dev/null; then
+    log_success "Argo CD server is responding via port-forward"
   else
-    log_warning "Could not reach Argo CD server via ingress - ensure 'minikube tunnel' is running"
+    log_info "Argo CD server not reachable yet - start port-forward to access UI"
   fi
 
-  # Check ingress is configured
+  # Check ingress is configured (kept for production parity)
   if kubectl get ingress argocd-server-ingress -n argocd &>/dev/null; then
     log_success "Ingress is configured"
   else
@@ -315,22 +298,22 @@ print_summary() {
   cat << EOF
 Argo CD $VERSION has been installed successfully.
 
-IMPORTANT:
-  Run 'minikube tunnel -p argocd-upgrade-demo' in a separate terminal
-  to enable ingress access.
-
 ARGO CD ACCESS:
-  URL:      https://argocd.local
-  Username: admin
-  Password: $password
+  1. Start port-forward (in a separate terminal):
+     kubectl port-forward svc/argocd-server -n argocd 8443:443
+
+  2. Open the UI:
+     URL:      https://localhost:8443
+     Username: admin
+     Password: $password
 
 VERSION:
   Installed: $version
   Target:    v3.2.1
 
 NEXT STEPS:
-  1. Ensure minikube tunnel is running
-  2. Open the Argo CD UI: https://argocd.local
+  1. Start port-forward (see above)
+  2. Open the Argo CD UI: https://localhost:8443
   3. Verify test applications are Healthy/Synced
   4. Proceed to first upgrade:
      ./scripts/02-upgrade-to-2.14.sh
@@ -338,9 +321,6 @@ NEXT STEPS:
 USEFUL COMMANDS:
   # Check Argo CD status
   kubectl get pods -n argocd
-
-  # Check ingress
-  kubectl get ingress -n argocd
 
   # View applications
   argocd app list

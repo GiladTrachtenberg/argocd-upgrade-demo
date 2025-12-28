@@ -202,11 +202,11 @@ argocd_login() {
     return 1
   fi
 
-  # Get the server URL (using ingress via minikube tunnel)
-  server="argocd.local"
+  # Get the server URL (using port-forward)
+  server="localhost:8443"
 
   log_info "Logging into Argo CD at $server..."
-  argocd login "$server" --username admin --password "$password" --insecure --grpc-web --skip-test-tls
+  argocd login "$server" --username admin --password "$password" --insecure --grpc-web
 }
 
 # Check health of all Argo CD applications

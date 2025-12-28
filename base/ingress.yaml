@@ -1,17 +1,15 @@
 # Argo CD Ingress - For local minikube testing
 #
-# This Ingress provides HTTPS access to Argo CD via a hostname,
-# simulating the production hub environment setup.
+# This Ingress is kept for production parity but local access uses port-forward.
 #
-# REQUIREMENTS:
-# - minikube with multi-node setup and ingress addon enabled
-# - minikube tunnel running in a separate terminal:
-#   minikube tunnel -p argocd-upgrade-demo
-# - /etc/hosts entry: 127.0.0.1 argocd.local
-#   (Added automatically by the install script, or add manually)
+# LOCAL ACCESS (recommended):
+#   kubectl port-forward svc/argocd-server -n argocd 8443:443
+#   URL: https://localhost:8443
 #
-# ACCESS:
-# - URL: https://argocd.local
+# INGRESS ACCESS (if using minikube tunnel or NodePort):
+#   URL: https://argocd.local (requires /etc/hosts entry)
+#
+# CREDENTIALS:
 # - Username: admin
 # - Password: admin123
 #
