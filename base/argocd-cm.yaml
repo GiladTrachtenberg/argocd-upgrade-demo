@@ -28,6 +28,8 @@ data:
   accounts.admin.enabled: "true"
   url: https://localhost:8080
   resource.ignoreResourceUpdatesEnabled: "true"
+  # uncomment this line before the 3.0 upgrade
+  # server.rbac.disableApplicationFineGrainedRBACInheritance: "false"
 
   resource.customizations.ignoreResourceUpdates.external-secrets.io_ExternalSecret:
     |

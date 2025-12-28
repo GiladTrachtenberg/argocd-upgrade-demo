@@ -83,22 +83,11 @@ patches:
     target:
       kind: ConfigMap
       name: argocd-cm
-  # RBAC migration for v3.0 fine-grained permissions
-  - path: migrations/argocd-rbac-v3-migration.yaml
-    target:
-      kind: ConfigMap
-      name: argocd-rbac-cm
   # Apply our argocd-secret (admin password)
   - path: ../../base/argocd-secret.yaml
     target:
       kind: Secret
       name: argocd-secret
-  # Server insecure mode for ingress with TLS termination
-  - path: ../../base/argocd-cmd-params-cm.yaml
-    target:
-      kind: ConfigMap
-      name: argocd-cmd-params-cm
-
   # Expose argocd-server as NodePort
   - target:
       kind: Service

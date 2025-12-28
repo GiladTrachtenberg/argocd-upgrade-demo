@@ -141,6 +141,9 @@ verify_cluster() {
   kubectl cluster-info
   echo ""
   kubectl get nodes -o wide
+
+  minikube profile argocd-upgrade-demo
+  minikube update-context -p argocd-upgrade-demo
 }
 
 print_summary() {
