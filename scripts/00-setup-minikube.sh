@@ -36,7 +36,7 @@ source "$SCRIPT_DIR/lib/common.sh"
 # Minikube cluster settings
 CLUSTER_NAME="${CLUSTER_NAME:-argocd-upgrade-demo}"
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-v1.28.0}"
-NODES="${NODES:-2}"           # 2 nodes for HA
+NODES="${NODES:-3}"           # 3 nodes for HA
 MEMORY="${MEMORY:-2048}"      # 2GB RAM per node
 CPUS="${CPUS:-2}"             # 2 CPUs per node
 DISK_SIZE="${DISK_SIZE:-10g}" # 10GB disk per node
