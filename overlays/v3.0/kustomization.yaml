@@ -63,7 +63,7 @@ namespace: argocd
 
 resources:
   # Using non-HA manifests for minikube (single node - HA anti-affinity rules won't work)
-  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.0.4/ha/manifests/install.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.0.4/manifests/ha/install.yaml
 
   # Our base configuration
   - ../../base
