@@ -91,7 +91,6 @@ main() {
     --cpus="$CPUS" \
     --disk-size="$DISK_SIZE" \
     --driver="$DRIVER" \
-    --ports=127.0.0.1:9080:80,127.0.0.1:9443:443 \
     --addons=default-storageclass,storage-provisioner
 
   log_success "Cluster created"
@@ -180,13 +179,16 @@ USEFUL COMMANDS:
   # Switch kubectl context to this cluster
   minikube profile $CLUSTER_NAME
 
+  # Access ingress services (run in separate terminal)
+  minikube tunnel -p $CLUSTER_NAME
+
   # Open Kubernetes dashboard
   minikube dashboard -p $CLUSTER_NAME
 
   # Get minikube IP
   minikube ip -p $CLUSTER_NAME
 
-  # SSH into minikube node
+  # SSH into minikube node (use -n <node-name> for specific node)
   minikube ssh -p $CLUSTER_NAME
 
   # Check enabled addons

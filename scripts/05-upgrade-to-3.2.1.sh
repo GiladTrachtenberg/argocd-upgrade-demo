@@ -208,7 +208,7 @@ test_new_features() {
   # Test server-side diff if we have an app
   local password=$(cat "$PROJECT_ROOT/.credentials/password" 2>/dev/null || echo "admin123")
 
-  if argocd login argocd.local:9443 --username admin --password "$password" --insecure --grpc-web --skip-test-tls 2>/dev/null; then
+  if argocd login argocd.local --username admin --password "$password" --insecure --grpc-web --skip-test-tls 2>/dev/null; then
     log_info "  Testing server-side diff..."
 
     # Get first app name

@@ -4,16 +4,14 @@
 # simulating the production hub environment setup.
 #
 # REQUIREMENTS:
-# - minikube with Docker driver (ports mapped: 9080:80, 9443:443)
-# - minikube ingress addon enabled: minikube addons enable ingress
+# - minikube with multi-node setup and ingress addon enabled
+# - minikube tunnel running in a separate terminal:
+#   minikube tunnel -p argocd-upgrade-demo
 # - /etc/hosts entry: 127.0.0.1 argocd.local
 #   (Added automatically by the install script, or add manually)
 #
-# NOTE: ingress-dns addon does NOT work with Docker driver on macOS
-# because the minikube IP is not routable from the host.
-#
 # ACCESS:
-# - URL: https://argocd.local:9443
+# - URL: https://argocd.local
 # - Username: admin
 # - Password: admin123
 #

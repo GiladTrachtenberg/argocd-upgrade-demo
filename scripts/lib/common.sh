@@ -202,8 +202,8 @@ argocd_login() {
     return 1
   fi
 
-  # Get the server URL (using ingress with custom port for Docker driver)
-  server="argocd.local:9443"
+  # Get the server URL (using ingress via minikube tunnel)
+  server="argocd.local"
 
   log_info "Logging into Argo CD at $server..."
   argocd login "$server" --username admin --password "$password" --insecure --grpc-web --skip-test-tls

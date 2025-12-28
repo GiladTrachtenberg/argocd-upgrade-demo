@@ -18,7 +18,8 @@
 #   ./scripts/01-install-argocd-2.10.sh
 #
 # AFTER RUNNING:
-#   - Access Argo CD UI: https://argocd.local:9443
+#   - Ensure minikube tunnel is running: minikube tunnel -p argocd-upgrade-demo
+#   - Access Argo CD UI: https://argocd.local
 #   - Username: admin
 #   - Password: admin123 (or generated password shown in output)
 #
@@ -142,12 +143,12 @@ wait_for_ingress() {
     log_warning "Ingress address not assigned yet - this is OK for minikube"
   fi
 
-  # Test connectivity via ingress
+  # Test connectivity via ingress (requires minikube tunnel running)
   sleep 3
-  if curl -s -k --connect-timeout 5 https://argocd.local:9443/healthz &>/dev/null; then
-    log_success "ArgoCD is accessible via https://argocd.local:9443"
+  if curl -s -k --connect-timeout 5 https://argocd.local/healthz &>/dev/null; then
+    log_success "ArgoCD is accessible via https://argocd.local"
   else
-    log_warning "Could not reach ArgoCD via ingress yet - it may take a moment"
+    log_warning "Could not reach ArgoCD via ingress - ensure 'minikube tunnel' is running"
   fi
 }
 
@@ -187,7 +188,7 @@ deploy_test_apps() {
   log_info "Logging into Argo CD..."
   local password=$(cat "$PROJECT_ROOT/.credentials/password" 2>/dev/null || echo "admin123")
 
-  if argocd login argocd.local:9443 --username admin --password "$password" --insecure --grpc-web --skip-test-tls 2>/dev/null; then
+  if argocd login argocd.local --username admin --password "$password" --insecure --grpc-web --skip-test-tls 2>/dev/null; then
     log_success "Logged into Argo CD"
   else
     log_warning "Could not login to Argo CD CLI - will use kubectl instead"
@@ -283,11 +284,11 @@ run_validation() {
     ((errors++))
   fi
 
-  # Check server is responding via ingress
-  if curl -s -k https://argocd.local:9443/healthz &>/dev/null; then
+  # Check server is responding via ingress (requires minikube tunnel)
+  if curl -s -k https://argocd.local/healthz &>/dev/null; then
     log_success "Argo CD server is responding via ingress"
   else
-    log_warning "Could not reach Argo CD server via ingress"
+    log_warning "Could not reach Argo CD server via ingress - ensure 'minikube tunnel' is running"
   fi
 
   # Check ingress is configured
@@ -314,8 +315,12 @@ print_summary() {
   cat << EOF
 Argo CD $VERSION has been installed successfully.
 
+IMPORTANT:
+  Run 'minikube tunnel -p argocd-upgrade-demo' in a separate terminal
+  to enable ingress access.
+
 ARGO CD ACCESS:
-  URL:      https://argocd.local:9443
+  URL:      https://argocd.local
   Username: admin
   Password: $password
 
@@ -324,9 +329,10 @@ VERSION:
   Target:    v3.2.1
 
 NEXT STEPS:
-  1. Open the Argo CD UI: https://argocd.local:9443
-  2. Verify test applications are Healthy/Synced
-  3. Proceed to first upgrade:
+  1. Ensure minikube tunnel is running
+  2. Open the Argo CD UI: https://argocd.local
+  3. Verify test applications are Healthy/Synced
+  4. Proceed to first upgrade:
      ./scripts/02-upgrade-to-2.14.sh
 
 USEFUL COMMANDS:
