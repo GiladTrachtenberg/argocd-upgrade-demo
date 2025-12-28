@@ -7,7 +7,7 @@
 #
 # WHAT THIS SCRIPT DOES:
 # 1. Checks prerequisites (minikube, kubectl, kustomize, argocd CLI)
-# 2. Creates a minikube cluster with sufficient resources
+# 2. Creates a multi-node minikube cluster for HA Argo CD
 # 3. Enables required addons (ingress, metrics-server)
 # 4. Verifies cluster is ready
 #
@@ -20,7 +20,7 @@
 #   - kustomize v5.0+
 #   - argocd CLI v2.10+
 #   - Docker Desktop (or other container runtime)
-#   - 4GB RAM available
+#   - 4GB RAM available (2GB per node x 2 nodes)
 #
 
 set -e
@@ -36,9 +36,10 @@ source "$SCRIPT_DIR/lib/common.sh"
 # Minikube cluster settings
 CLUSTER_NAME="${CLUSTER_NAME:-argocd-upgrade-demo}"
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-v1.28.0}"
-MEMORY="${MEMORY:-4096}"      # 4GB RAM
-CPUS="${CPUS:-4}"             # 4 CPUs
-DISK_SIZE="${DISK_SIZE:-10g}" # 10GB disk
+NODES="${NODES:-2}"           # 2 nodes for HA
+MEMORY="${MEMORY:-2048}"      # 2GB RAM per node
+CPUS="${CPUS:-2}"             # 2 CPUs per node
+DISK_SIZE="${DISK_SIZE:-10g}" # 10GB disk per node
 
 # Container runtime (docker, containerd, cri-o)
 DRIVER="${DRIVER:-docker}"
@@ -75,15 +76,17 @@ main() {
   log_step "3/5" "Creating minikube cluster..."
   log_info "Cluster name: $CLUSTER_NAME"
   log_info "Kubernetes version: $KUBERNETES_VERSION"
-  log_info "Memory: ${MEMORY}MB"
-  log_info "CPUs: $CPUS"
-  log_info "Disk: $DISK_SIZE"
+  log_info "Nodes: $NODES"
+  log_info "Memory: ${MEMORY}MB per node"
+  log_info "CPUs: $CPUS per node"
+  log_info "Disk: $DISK_SIZE per node"
   log_info "Driver: $DRIVER"
   echo ""
 
   minikube start \
     --profile="$CLUSTER_NAME" \
     --kubernetes-version="$KUBERNETES_VERSION" \
+    --nodes="$NODES" \
     --memory="$MEMORY" \
     --cpus="$CPUS" \
     --disk-size="$DISK_SIZE" \
@@ -150,8 +153,9 @@ Minikube cluster '$CLUSTER_NAME' is ready for Argo CD upgrade demo.
 CLUSTER DETAILS:
   Name:       $CLUSTER_NAME
   K8s:        $KUBERNETES_VERSION
-  Memory:     ${MEMORY}MB
-  CPUs:       $CPUS
+  Nodes:      $NODES
+  Memory:     ${MEMORY}MB per node
+  CPUs:       $CPUS per node
   Driver:     $DRIVER
 
 ENABLED ADDONS:
