@@ -3,7 +3,7 @@ kind: Kustomization
 namespace: argocd
 resources:
   # Using non-HA manifests for minikube (single node - HA anti-affinity rules won't work)
-  - https://raw.githubusercontent.com/argoproj/argo-cd/v2.10.17/manifests/install.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v2.10.17/ha/manifests/install.yaml
   - ../../base
 patches:
   # Disable automatic deletion of argocd-initial-admin-secret (for demo/testing)

@@ -63,7 +63,7 @@ namespace: argocd
 
 resources:
   # Using non-HA manifests for minikube (single node - HA anti-affinity rules won't work)
-  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.0.4/manifests/install.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.0.4/ha/manifests/install.yaml
 
   # Our base configuration
   - ../../base
@@ -124,7 +124,6 @@ commonAnnotations:
   argocd.version: "v3.0.4"
   demo.upgrade.step: "v2.14-to-v3.0"
   demo.upgrade.major: "true"
-
 # ===========================================================================
 # POST-UPGRADE VALIDATION CHECKLIST
 # ===========================================================================
