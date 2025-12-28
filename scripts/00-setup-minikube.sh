@@ -102,6 +102,18 @@ main() {
   log_info "  Enabling ingress addon..."
   minikube addons enable ingress -p "$CLUSTER_NAME"
 
+  # Wait for ingress controller to be ready before patching
+  log_info "  Waiting for ingress controller to be ready..."
+  kubectl wait --namespace ingress-nginx \
+    --for=condition=ready pod \
+    --selector=app.kubernetes.io/component=controller \
+    --timeout=120s
+
+  # Patch ingress-nginx service to LoadBalancer for minikube tunnel support
+  log_info "  Patching ingress-nginx service to LoadBalancer..."
+  kubectl patch svc ingress-nginx-controller -n ingress-nginx \
+    -p '{"spec": {"type": "LoadBalancer"}}'
+
   # Ingress-DNS addon for DNS resolution of ingress hosts
   log_info "  Enabling ingress-dns addon..."
   minikube addons enable ingress-dns -p "$CLUSTER_NAME"
